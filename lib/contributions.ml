@@ -54,14 +54,15 @@ let query =
   }
 }|}
 
-let fetch ~period:(start, finish) ~token =
-  Lwt_main.run begin
-    let variables = [
+let fetch_lwt ~period:(start, finish) ~token =
+  let variables = [
         "from", `String start;
         "to", `String finish;
     ] in
     Graphql.exec token ~variables query
-  end
+
+let fetch ~period ~token =
+  Lwt_main.run (fetch_lwt ~period ~token)
 
 module Datetime = struct
   type t = string
@@ -81,6 +82,39 @@ type item = {
   title : string;
   body : string;
 }
+
+let kind_to_yojson = function 
+  | `Issue -> `List [ `String "issue" ]
+  | `PR -> `List [ `String "pr" ]
+  | `Review s -> `List [ `String "review"; `String s ]
+  | `New_repo -> `List [ `String "new_repo" ]
+
+let kind_of_yojson = function 
+  | `List [ `String "issue" ] -> `Issue
+  | `List [ `String "pr" ] -> `PR
+  | `List [ `String "review"; `String s ] -> `Review s
+  | `List [ `String "new_repo" ] -> `New_repo
+  | _ -> failwith ""
+
+let item_to_yojson { repo; kind; date; url; title; body } = 
+  `Assoc [
+    "repo", `String repo;
+    "kind", kind_to_yojson kind;
+    "date", `String date;
+    "url", `String url;
+    "title", `String title;
+    "body", `String body;
+  ]
+
+let item_of_yojson json = 
+  let repo = json / "repo" |> Json.Util.to_string in 
+  let kind = json / "kind" |> kind_of_yojson in 
+  let date = json / "date" |> Datetime.parse in 
+  let url = json / "url" |> Json.Util.to_string in 
+  let title = json / "title" |> Json.Util.to_string in 
+  let body = json / "body" |> Json.Util.to_string in 
+  { repo; kind; date; url; title; body }
+
 
 let read_issues json =
   Json.Util.to_list (json / "nodes") |> List.filter ((<>) `Null) |> List.map @@ fun node ->
@@ -173,6 +207,17 @@ let pp_repo f (name, items) =
 
 type t = item list Repo_map.t
 
+let to_yojson (t : t) : Yojson.Safe.t =
+  let repo_list = Seq.fold_left (fun a (repo, item) -> (repo, `List (List.map item_to_yojson item))::a) [] @@ Repo_map.to_seq t in 
+  `Assoc repo_list
+
+let of_yojson = function 
+  | `Assoc assoc -> 
+    let repo_list = List.map (function (repo, `List items) -> (repo, List.map item_of_yojson items) | _ -> failwith "") assoc in 
+    Repo_map.of_seq (List.to_seq repo_list)
+  | _ -> failwith "Error"
+
+
 let is_empty = Repo_map.is_empty
 
 let pp f t =
@@ -180,4 +225,4 @@ let pp f t =
   match by_repo with
   | [] -> Fmt.string f "(no activity)"
   | [(_, items)] -> pp_items f items
-  | repos -> Fmt.(list ~sep:(cut ++ cut)) pp_repo f repos
+  | repos -> Fmt.(list ~sep:(Format.pp_force_newline)) pp_repo f repos

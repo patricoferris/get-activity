@@ -1,3 +1,5 @@
+open Get_activity
+
 let ( / ) = Filename.concat
 
 let or_die = function
@@ -38,17 +40,6 @@ let set_mtime path time =
 let get_token () =
   Token.load (home / ".github" / "github-activity-token")
 
-let to_8601 t =
-  let open Unix in
-  let t = gmtime t in
-  Printf.sprintf "%04d-%02d-%02dT%02d:%02d:%02dZ"
-    (t.tm_year + 1900)
-    (t.tm_mon + 1)
-    (t.tm_mday)
-    (t.tm_hour)
-    (t.tm_min)
-    (t.tm_sec)
-
 (* Run [fn (start, finish)], where [(start, finish)] is the period specified by [period].
    If [period] is [`Since_last_fetch] or [`Last_week] then update the last-fetch timestamp on success. *)
 let with_period period fn =
@@ -58,9 +49,9 @@ let with_period period fn =
     match period with
     | `Since_last_fetch ->
       let last_fetch = Option.value ~default:last_week (mtime last_fetch_file) in
-      (to_8601 last_fetch, to_8601 now)
+      (Period.to_8601 last_fetch, Period.to_8601 now)
     | `Last_week ->
-      (to_8601 last_week, to_8601 now)
+      (Period.to_8601 last_week, Period.to_8601 now)
     | `Range r -> r
   in
   fn range;
@@ -122,7 +113,7 @@ let run period : unit =
       )
   | `Load ->
     (* When testing formatting changes, it is quicker to fetch the data once and then load it again for each test: *)
-    let from = mtime last_fetch_file |> Option.value ~default:0.0 |> to_8601 in
+    let from = mtime last_fetch_file |> Option.value ~default:0.0 |> Period.to_8601 in
     show ~from @@ Yojson.Safe.from_file "activity.json"
 
 let () = Term.exit @@ Term.eval (Term.(pure run $ period), info)
