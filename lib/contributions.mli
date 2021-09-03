@@ -15,7 +15,10 @@ type item = {
 
 module Repo_map : Map.S with type key = string
 
-type t = item list Repo_map.t
+type t = {
+  username : string;
+  activity : item list Repo_map.t
+}
 
 val of_yojson : Yojson.Safe.t -> t 
 
@@ -27,6 +30,8 @@ val of_json : from:string -> Yojson.Safe.t -> t
 (** We pass [from] again here so we can filter out anything that GitHub included by accident. *)
 
 val is_empty : t -> bool
+
+val pp_title : item Fmt.t
 
 val pp : t Fmt.t
 (** [pp] formats as markdown. *)

@@ -6,6 +6,9 @@ let query =
   {| query($from: DateTime!, $to: DateTime!) {
    viewer {
     contributionsCollection(from: $from, to: $to) {
+      user {
+        login
+      }
       issueContributions(first: 100) {
         nodes {
           occurredAt
@@ -156,8 +159,14 @@ let read_repos json =
   let repo = repo / "nameWithOwner" |> Json.Util.to_string in
   { kind = `New_repo; date; url; title = "Created new repository"; body = ""; repo }
 
+type t = {
+  username : string;
+  activity : item list Repo_map.t
+}
+
 let of_json ~from json =
   let contribs = json / "data" / "viewer" / "contributionsCollection" in
+  let username = json / "data" / "viewer" / "contributionsCollection" / "user" / "login" |> Json.Util.to_string in
   let items =
     read_issues  (contribs / "issueContributions") @
     read_prs     (contribs / "pullRequestContributions") @
@@ -165,12 +174,15 @@ let of_json ~from json =
     read_repos   (contribs / "repositoryContributions")
   in
   (* GitHub seems to ignore the time part, so do the filtering here. *)
-  items
-  |> List.filter (fun item -> item.date >= from)
-  |> List.fold_left (fun acc item ->
-      let items = Repo_map.find_opt item.repo acc |> Option.value ~default:[] in
-      Repo_map.add item.repo (item :: items) acc
-    ) Repo_map.empty
+  let activity =
+    items
+    |> List.filter (fun item -> item.date >= from)
+    |> List.fold_left (fun acc item ->
+        let items = Repo_map.find_opt item.repo acc |> Option.value ~default:[] in
+        Repo_map.add item.repo (item :: items) acc
+      ) Repo_map.empty
+  in
+    { username; activity }
 
 let id url =
   match Astring.String.cut ~sep:"/" ~rev:true url with
@@ -205,23 +217,22 @@ let pp_items = Fmt.(list ~sep:(cut ++ cut) pp_item)
 let pp_repo f (name, items) =
   Fmt.pf f "### %s@,@,%a" name pp_items items
 
-type t = item list Repo_map.t
-
 let to_yojson (t : t) : Yojson.Safe.t =
-  let repo_list = Seq.fold_left (fun a (repo, item) -> (repo, `List (List.map item_to_yojson item))::a) [] @@ Repo_map.to_seq t in 
-  `Assoc repo_list
+  let repo_list = Seq.fold_left (fun a (repo, item) -> (repo, `List (List.map item_to_yojson item))::a) [] @@ Repo_map.to_seq t.activity in
+  `Assoc [ ("username", `String t.username); ("activity", `Assoc repo_list) ]
 
 let of_yojson = function 
-  | `Assoc assoc -> 
+  | `Assoc [("username", `String username); ("activity", `Assoc assoc)] ->
     let repo_list = List.map (function (repo, `List items) -> (repo, List.map item_of_yojson items) | _ -> failwith "") assoc in 
-    Repo_map.of_seq (List.to_seq repo_list)
+    let activity = Repo_map.of_seq (List.to_seq repo_list) in
+      { username; activity }
   | _ -> failwith "Error"
 
 
-let is_empty = Repo_map.is_empty
+let is_empty { activity; _ } = Repo_map.is_empty activity
 
-let pp f t =
-  let by_repo = Repo_map.bindings t in
+let pp f { activity; _ } =
+  let by_repo = Repo_map.bindings activity in
   match by_repo with
   | [] -> Fmt.string f "(no activity)"
   | [(_, items)] -> pp_items f items
