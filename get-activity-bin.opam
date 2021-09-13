@@ -7,13 +7,8 @@ homepage: "https://github.com/talex5/get-activity"
 bug-reports: "https://github.com/talex5/get-activity/issues"
 depends: [
   "dune" {>= "2.3"}
-  "cohttp"
-  "cohttp-lwt"
-  "unix"
-  "astring"
-  "fmt"
-  "yojson"
-  "ocaml" {>= "4.08"}
+  "get-activity"
+  "cohttp-lwt-unix"
 ]
 build: [
   ["dune" "subst"] {pinned}
