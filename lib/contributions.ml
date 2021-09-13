@@ -57,15 +57,16 @@ let query =
   }
 }|}
 
-let fetch_lwt ~period:(start, finish) ~token =
-  let variables = [
-        "from", `String start;
-        "to", `String finish;
-    ] in
-    Graphql.exec token ~variables query
+module Fetch (C : Cohttp_lwt.S.Client) = struct
 
-let fetch ~period ~token =
-  Lwt_main.run (fetch_lwt ~period ~token)
+  module G = Graphql.Make(C)
+  let exec ~period:(start, finish) ~token =
+    let variables = [
+          "from", `String start;
+          "to", `String finish;
+      ] in
+      G.exec token ~variables query
+end
 
 module Datetime = struct
   type t = string
@@ -226,7 +227,7 @@ let of_yojson = function
     let repo_list = List.map (function (repo, `List items) -> (repo, List.map item_of_yojson items) | _ -> failwith "") assoc in 
     let activity = Repo_map.of_seq (List.to_seq repo_list) in
       { username; activity }
-  | _ -> failwith "Error"
+  | t -> failwith (Yojson.Safe.to_string t)
 
 
 let is_empty { activity; _ } = Repo_map.is_empty activity

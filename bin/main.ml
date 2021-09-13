@@ -97,18 +97,20 @@ let period =
 
 let info = Term.info "get-activity"
 
+module Fetch = Contributions.Fetch (Cohttp_lwt_unix.Client)
+
 let run period : unit =
   match mode with
   | `Normal ->
     with_period period (fun period ->
         (* Fmt.pr "period: %a@." Fmt.(pair string string) period; *)
         let token = get_token () |> or_die in
-        show ~from:(fst period) @@ Contributions.fetch ~period ~token
+        show ~from:(fst period) @@ (Lwt_main.run (Fetch.exec ~period ~token))
       )
   | `Save ->
     with_period period (fun period ->
         let token = get_token () |> or_die in
-        Contributions.fetch ~period ~token
+        Lwt_main.run @@ Fetch.exec ~period ~token
         |> Yojson.Safe.to_file "activity.json"
       )
   | `Load ->

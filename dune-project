@@ -12,6 +12,5 @@
   cmdliner
   cohttp
   cohttp-lwt
-  cohttp-lwt-unix
   yojson
   (ocaml (>= 4.08))))

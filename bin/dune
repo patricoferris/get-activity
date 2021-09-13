@@ -1,4 +1,4 @@
 (executable
  (name main)
  (public_name get-activity)
- (libraries get-activity cmdliner))
+ (libraries get-activity cohttp-lwt-unix cmdliner))
