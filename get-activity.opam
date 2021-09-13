@@ -9,7 +9,7 @@ depends: [
   "dune" {>= "2.3"}
   "cohttp"
   "cohttp-lwt"
-  "unix"
+  "base-unix"
   "astring"
   "fmt"
   "yojson"

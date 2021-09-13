@@ -19,7 +19,7 @@
  (depends
   cohttp
   cohttp-lwt
-  unix
+  base-unix
   astring
   fmt
   yojson
