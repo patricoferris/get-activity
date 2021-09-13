@@ -24,7 +24,9 @@ val of_yojson : Yojson.Safe.t -> t
 
 val to_yojson : t -> Yojson.Safe.t
 
-val fetch : period:(string * string) -> token:Token.t -> Yojson.Safe.t
+module Fetch : functor (C : Cohttp_lwt.S.Client) -> sig
+  val exec : period:(string * string) -> token:Token.t -> Yojson.Safe.t Lwt.t
+end
 
 val of_json : from:string -> Yojson.Safe.t -> t
 (** We pass [from] again here so we can filter out anything that GitHub included by accident. *)
