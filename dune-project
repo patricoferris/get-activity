@@ -5,12 +5,22 @@
 (source (github talex5/get-activity))
 (authors "talex5@gmail.com")
 (maintainers "talex5@gmail.com")
+
+(package
+ (name get-activity-bin)
+ (synopsis "collect activity as markdown")
+ (depends
+  get-activity
+  cohttp-lwt-unix))
+
 (package
  (name get-activity)
  (synopsis "collect activity as markdown")
  (depends
-  cmdliner
   cohttp
   cohttp-lwt
+  unix
+  astring
+  fmt
   yojson
   (ocaml (>= 4.08))))

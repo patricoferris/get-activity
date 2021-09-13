@@ -1,4 +1,5 @@
 (executable
  (name main)
+ (package get-activity-bin)
  (public_name get-activity)
  (libraries get-activity cohttp-lwt-unix cmdliner))
