@@ -8,7 +8,7 @@ bug-reports: "https://github.com/talex5/get-activity/issues"
 depends: [
   "dune" {>= "3.6"}
   "cmdliner" {>= "1.1.0"}
-  "get-activity"
+  "get-activity" {= version}
   "cohttp-lwt-unix"
   "odoc" {with-doc}
 ]

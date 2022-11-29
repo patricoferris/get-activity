@@ -11,7 +11,7 @@
  (synopsis "Collect activity as Markdown")
  (depends
   (cmdliner (>= 1.1.0))
-  get-activity
+  (get-activity (= :version))
   cohttp-lwt-unix))
 
 (package
