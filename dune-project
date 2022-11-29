@@ -8,14 +8,14 @@
 
 (package
  (name get-activity-bin)
- (synopsis "collect activity as markdown")
+ (synopsis "Collect activity as Markdown")
  (depends
   get-activity
   cohttp-lwt-unix))
 
 (package
  (name get-activity)
- (synopsis "collect activity as markdown")
+ (synopsis "Collect activity as Markdown")
  (depends
   cohttp
   cohttp-lwt
