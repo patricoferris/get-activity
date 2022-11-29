@@ -20,11 +20,11 @@ type t = {
   activity : item list Repo_map.t
 }
 
-val of_yojson : Yojson.Safe.t -> t 
+val of_yojson : Yojson.Safe.t -> t
 
 val to_yojson : t -> Yojson.Safe.t
 
-module Fetch : functor (C : Cohttp_lwt.S.Client) -> sig
+module Fetch : functor (_ : Cohttp_lwt.S.Client) -> sig
   val exec : period:(string * string) -> token:Token.t -> Yojson.Safe.t Lwt.t
 end
 

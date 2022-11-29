@@ -6,13 +6,14 @@ authors: ["talex5@gmail.com"]
 homepage: "https://github.com/talex5/get-activity"
 bug-reports: "https://github.com/talex5/get-activity/issues"
 depends: [
-  "dune" {>= "2.3"}
+  "dune" {>= "3.6"}
   "cmdliner" {>= "1.1.0"}
   "get-activity"
   "cohttp-lwt-unix"
+  "odoc" {with-doc}
 ]
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"] {dev}
   [
     "dune"
     "build"

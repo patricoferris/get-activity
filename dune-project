@@ -1,4 +1,4 @@
-(lang dune 2.3)
+(lang dune 3.6)
 (name get-activity)
 (formatting disabled)
 (generate_opam_files true)
