@@ -93,9 +93,9 @@ let period =
       | Some x, Some y -> `Range (x, y)
       | _ -> Fmt.invalid_arg "--to and --from should be provided together"
   in
-  Term.(pure f $ from $ to_ $ last_week)
+  Term.(const f $ from $ to_ $ last_week)
 
-let info = Term.info "get-activity"
+let info = Cmd.info "get-activity"
 
 module Fetch = Contributions.Fetch (Cohttp_lwt_unix.Client)
 
@@ -118,4 +118,4 @@ let run period : unit =
     let from = mtime last_fetch_file |> Option.value ~default:0.0 |> Period.to_8601 in
     show ~from @@ Yojson.Safe.from_file "activity.json"
 
-let () = Term.exit @@ Term.eval (Term.(pure run $ period), info)
+let () = exit @@ Cmd.eval (Cmd.v info Term.(const run $ period))

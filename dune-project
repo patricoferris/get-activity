@@ -10,6 +10,7 @@
  (name get-activity-bin)
  (synopsis "Collect activity as Markdown")
  (depends
+  (cmdliner (>= 1.1.0))
   get-activity
   cohttp-lwt-unix))
 
