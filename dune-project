@@ -1,4 +1,4 @@
-(lang dune 2.3)
+(lang dune 3.6)
 (name get-activity)
 (formatting disabled)
 (generate_opam_files true)
@@ -8,14 +8,15 @@
 
 (package
  (name get-activity-bin)
- (synopsis "collect activity as markdown")
+ (synopsis "Collect activity as Markdown")
  (depends
-  get-activity
+  (cmdliner (>= 1.1.0))
+  (get-activity (= :version))
   cohttp-lwt-unix))
 
 (package
  (name get-activity)
- (synopsis "collect activity as markdown")
+ (synopsis "Collect activity as Markdown")
  (depends
   cohttp
   cohttp-lwt
